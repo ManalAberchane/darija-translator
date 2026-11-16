@@ -67,7 +67,7 @@ public class BasicAuthModule implements ServerAuthModule {
         String message = credentials == null
                 ? "Authentication required: use HTTP Basic authentication"
                 : "Invalid username or password";
-        sendUnauthorized(response, message);
+        sendUnauthorized(request, response, message);
         return AuthStatus.SEND_FAILURE;
     }
 
@@ -122,10 +122,17 @@ public class BasicAuthModule implements ServerAuthModule {
         }
     }
 
-    private static void sendUnauthorized(HttpServletResponse response, String message) throws AuthException {
+    /**
+     * Script clients (extension, mobile app) send {@code X-Requested-With}; for them the
+     * challenge header is omitted so the browser does not show its own login dialog.
+     */
+    private static void sendUnauthorized(HttpServletRequest request, HttpServletResponse response, String message)
+            throws AuthException {
         try {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.setHeader("WWW-Authenticate", "Basic realm=\"" + REALM + "\", charset=\"UTF-8\"");
+            if (request.getHeader("X-Requested-With") == null) {
+                response.setHeader("WWW-Authenticate", "Basic realm=\"" + REALM + "\", charset=\"UTF-8\"");
+            }
             response.setHeader("Access-Control-Allow-Origin", "*");
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");

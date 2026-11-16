@@ -84,6 +84,17 @@ class TranslatorApiTest {
     }
 
     @Test
+    void scriptClientsGet401WithoutBrowserChallenge() throws Exception {
+        HttpResponse<String> response = send(HttpRequest.newBuilder(URI.create(baseUrl + "/translate"))
+                .header("Content-Type", "application/json")
+                .header("X-Requested-With", "XMLHttpRequest")
+                .header("Authorization", basic("tester", "wrong"))
+                .POST(HttpRequest.BodyPublishers.ofString("{\"text\":\"Hello\"}")));
+        assertEquals(401, response.statusCode());
+        assertTrue(response.headers().firstValue("WWW-Authenticate").isEmpty());
+    }
+
+    @Test
     void wrongPasswordIsRejected() throws Exception {
         HttpResponse<String> response = post("{\"text\":\"Hello\"}", basic("tester", "wrong"), "application/json");
         assertEquals(401, response.statusCode());
