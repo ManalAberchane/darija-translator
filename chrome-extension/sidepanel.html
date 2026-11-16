@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Darija Translator</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <img src="icons/icon32.png" alt="" width="24" height="24">
+      <h1>Darija Translator</h1>
+    </div>
+    <button id="settingsToggle" class="icon-btn" title="Server settings" aria-expanded="false">⚙</button>
+  </header>
+
+  <section id="settings" class="card settings" hidden>
+    <h2>Server connection</h2>
+    <label>REST API URL
+      <input id="serverUrl" type="url" placeholder="http://localhost:8080" autocomplete="off">
+    </label>
+    <label>Username
+      <input id="username" type="text" autocomplete="username">
+    </label>
+    <label>Password
+      <input id="password" type="password" autocomplete="current-password">
+    </label>
+    <div class="row">
+      <button id="saveSettings" class="primary">Save</button>
+      <button id="testConnection">Test connection</button>
+    </div>
+    <p id="settingsStatus" class="status" role="status"></p>
+  </section>
+
+  <main class="card">
+    <div class="row options">
+      <label class="compact">From
+        <select id="sourceLanguage">
+          <option value="auto">Detect language</option>
+          <option>English</option>
+          <option>French</option>
+          <option>Spanish</option>
+          <option>German</option>
+          <option>Italian</option>
+          <option>Modern Standard Arabic</option>
+          <option>Portuguese</option>
+          <option>Korean</option>
+        </select>
+      </label>
+      <div class="segmented" role="radiogroup" aria-label="Darija script">
+        <button data-script="arabic" class="active" role="radio" aria-checked="true">عربي</button>
+        <button data-script="latin" role="radio" aria-checked="false">Latin</button>
+      </div>
+    </div>
+
+    <div class="input-wrap">
+      <textarea id="sourceText" rows="5" maxlength="5000" placeholder="Type, paste, speak, or right-click selected text on any page…"></textarea>
+      <div class="input-tools">
+        <button id="micButton" class="icon-btn" title="Speak (voice-to-voice translation)">🎤</button>
+        <span id="charCount" class="muted">0 / 5000</span>
+      </div>
+    </div>
+
+    <button id="translateButton" class="primary wide">Translate to Darija</button>
+
+    <div id="resultBlock" class="result" hidden>
+      <div class="result-head">
+        <span id="resultMeta" class="muted"></span>
+        <div class="row">
+          <button id="speakButton" class="icon-btn" title="Read aloud">🔊</button>
+          <button id="copyButton" class="icon-btn" title="Copy translation">📋</button>
+        </div>
+      </div>
+      <p id="resultText" class="result-text" dir="auto"></p>
+    </div>
+    <p id="status" class="status" role="status"></p>
+  </main>
+
+  <section class="card">
+    <div class="result-head">
+      <h2>History</h2>
+      <button id="clearHistory" class="link">Clear</button>
+    </div>
+    <ul id="history" class="history"></ul>
+    <p id="historyEmpty" class="muted">Your translations will appear here.</p>
+  </section>
+
+  <script src="api.js"></script>
+  <script src="sidepanel.js"></script>
+</body>
+</html>
