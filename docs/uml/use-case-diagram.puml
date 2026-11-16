@@ -1,0 +1,36 @@
+@startuml use-case-diagram
+title Darija Translator - use cases
+left to right direction
+skinparam shadowing false
+skinparam usecase {
+  BackgroundColor #FFFFFF
+  BorderColor #0f625c
+}
+actor User
+actor "Gemini API" as gemini
+rectangle "Darija Translator system" {
+  usecase "Translate text to Darija" as UC1
+  usecase "Translate selected web text\n(context menu + side panel)" as UC2
+  usecase "Choose source language" as UC3
+  usecase "Choose Arabic or Latin script" as UC4
+  usecase "Speak input (voice-to-voice)" as UC5
+  usecase "Listen to translation (TTS)" as UC6
+  usecase "Copy translation" as UC7
+  usecase "View translation history" as UC8
+  usecase "Configure server and credentials" as UC9
+  usecase "Authenticate (HTTP Basic)" as UC10
+}
+User --> UC1
+User --> UC2
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
+User --> UC9
+UC2 .> UC1 : <<include>>
+UC5 .> UC1 : <<include>>
+UC1 .> UC10 : <<include>>
+UC3 .> UC1 : <<extend>>
+UC4 .> UC1 : <<extend>>
+UC1 --> gemini
+@enduml

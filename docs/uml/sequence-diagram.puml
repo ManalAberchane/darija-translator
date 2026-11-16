@@ -1,0 +1,43 @@
+@startuml sequence-diagram
+title Translating selected text from the Chrome extension
+skinparam shadowing false
+skinparam sequence {
+  ArrowColor #0f625c
+  LifeLineBorderColor #0f625c
+  ParticipantBorderColor #0f625c
+  ParticipantBackgroundColor #FFFFFF
+}
+actor User
+participant "Web page" as page
+participant "Service worker\n(background.js)" as sw
+participant "Side panel\n(sidepanel.js)" as panel
+participant "Tomcat +\nBasicAuthModule" as auth
+participant "TranslatorResource" as res
+participant "GeminiTranslationService" as svc
+participant "Gemini API" as gemini
+
+User -> page : select text, right-click
+User -> sw : "Translate to Darija" (context menu)
+sw -> panel : chrome.sidePanel.open()
+sw -> panel : storage.session.set(pendingTranslation)
+panel -> auth : POST /api/translate\nAuthorization: Basic ...\n{text, sourceLanguage, script}
+auth -> auth : validateRequest()\ncheck credentials
+alt invalid or missing credentials
+  auth --> panel : 401 Unauthorized (JSON)
+  panel --> User : "Invalid username or password"
+else valid
+  auth -> res : request (caller principal = manal)
+  res -> res : validate text (non-empty, <= 5000 chars)
+  res -> svc : translate(text, source, script)
+  svc -> gemini : POST models/{model}:generateContent
+  alt model overloaded (503/429)
+    gemini --> svc : 503
+    svc -> gemini : retry with fallback model
+  end
+  gemini --> svc : {"translation": "...", "detectedLanguage": "English"}
+  svc --> res : TranslationResult
+  res --> panel : 200 {translation, sourceLanguage, targetLanguage, script, model}
+  panel -> panel : show result, save to history
+  panel --> User : Darija translation (copy / listen)
+end
+@enduml

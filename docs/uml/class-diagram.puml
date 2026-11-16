@@ -1,0 +1,142 @@
+@startuml class-diagram
+title Darija Translator backend - class diagram
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam class {
+  BackgroundColor #FFFFFF
+  BorderColor #0f625c
+  ArrowColor #0f625c
+}
+hide empty members
+
+package "ma.aui.translator" {
+  class Main {
+    + {static} main(args : String[]) : void
+  }
+}
+
+package "config" {
+  class AppConfig <<record>> {
+    + port : int
+    + username : String
+    + password : String
+    + geminiApiKey : String
+    + geminiModel : String
+    + geminiFallbackModel : String
+    + geminiBaseUrl : String
+    + {static} load() : AppConfig
+    + hasGeminiKey() : boolean
+  }
+}
+
+package "server" {
+  class EmbeddedServer {
+    - tomcat : Tomcat
+    + EmbeddedServer(port, application, authModule)
+    + start() : int
+    + await() : void
+    + stop() : void
+  }
+}
+
+package "security" {
+  interface "jakarta.security.auth.message.module.ServerAuthModule" as SAM {
+    + initialize(...)
+    + validateRequest(MessageInfo, Subject, Subject) : AuthStatus
+    + secureResponse(MessageInfo, Subject) : AuthStatus
+    + cleanSubject(MessageInfo, Subject)
+  }
+  class BasicAuthModule {
+    - handler : CallbackHandler
+    + validateRequest(...) : AuthStatus
+    - decodeBasicHeader(header) : String[]
+    - notifyContainer(subject, user)
+    - sendUnauthorized(request, response, message)
+  }
+  class CredentialValidator {
+    - username : byte[]
+    - password : byte[]
+    + isValid(user, password) : boolean
+  }
+}
+
+package "rest" {
+  class TranslatorApplication <<ResourceConfig>>
+  class TranslatorResource <<@Path("/translate")>> {
+    - translationService : TranslationService
+    + translate(request : TranslationRequest) : TranslationResponse
+    + translateFromQuery(text, sourceLanguage, script) : TranslationResponse
+  }
+  class HealthResource <<@Path("/health")>> {
+    + health() : Map
+  }
+  class TranslationRequest <<record>> {
+    text : String
+    sourceLanguage : String
+    script : String
+  }
+  class TranslationResponse <<record>> {
+    translation : String
+    sourceLanguage : String
+    targetLanguage : String
+    script : String
+    model : String
+  }
+  class ErrorResponse <<record>> {
+    status : int
+    error : String
+    message : String
+  }
+  class ErrorMappers {
+  }
+  class CorsFilter <<ContainerResponseFilter>>
+}
+
+package "llm" {
+  interface TranslationService {
+    + translate(text, sourceLanguage, script : Script) : TranslationResult
+  }
+  class GeminiTranslationService {
+    - models : List<String>
+    - apiKey : String
+    + translate(...) : TranslationResult
+    ~ buildRequestBody(...) : String
+    ~ parseResponse(...) : TranslationResult
+  }
+  class TranslationResult <<record>> {
+    translation : String
+    detectedSourceLanguage : String
+    model : String
+  }
+  enum Script {
+    ARABIC
+    LATIN
+  }
+  class TranslationException {
+    - reason : Reason
+    + isRetryable() : boolean
+  }
+}
+
+Main ..> AppConfig : loads
+Main ..> EmbeddedServer : starts
+Main ..> GeminiTranslationService : creates
+EmbeddedServer o-- TranslatorApplication
+EmbeddedServer o-- BasicAuthModule : registers via\nAuthConfigFactory
+SAM <|.. BasicAuthModule
+BasicAuthModule --> CredentialValidator
+TranslatorApplication ..> TranslatorResource
+TranslatorApplication ..> HealthResource
+TranslatorApplication ..> ErrorMappers
+TranslatorApplication ..> CorsFilter
+TranslatorResource --> TranslationService : injected
+TranslatorResource ..> TranslationRequest
+TranslatorResource ..> TranslationResponse
+ErrorMappers ..> ErrorResponse
+ErrorMappers ..> TranslationException
+TranslationService <|.. GeminiTranslationService
+TranslationService ..> TranslationResult
+TranslationService ..> Script
+GeminiTranslationService ..> TranslationException : throws
+@enduml

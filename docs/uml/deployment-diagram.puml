@@ -1,0 +1,49 @@
+@startuml deployment-diagram
+title Darija Translator - deployment diagram
+skinparam shadowing false
+skinparam node {
+  BackgroundColor #FFFFFF
+  BorderColor #0f625c
+}
+skinparam artifact {
+  BackgroundColor #f4f7f6
+  BorderColor #d67840
+}
+
+node "Laptop (Windows 11, JDK 21+)" as laptop {
+  node "JVM : java -jar darija-translator.jar" as jvm {
+    node "Embedded Apache Tomcat 11" as tomcat {
+      artifact "Jakarta Authentication\nBasicAuthModule (ServerAuthModule)" as sam
+      artifact "Jersey 4 (Jakarta REST)\n/api/translate, /api/health" as rest
+    }
+  }
+  node "Google Chrome" as chrome {
+    artifact "Darija Translator extension\n(Manifest V3, side panel,\ncontext menu)" as ext
+  }
+  node "PHP 8.4 built-in server :8000" as php {
+    artifact "php-client\n(index.php)" as phpapp
+  }
+  node "Python 3.14" as py {
+    artifact "python-client\n(Tkinter app / CLI)" as pyapp
+  }
+  node "Node.js + Expo dev server" as metro
+}
+
+node "Samsung Galaxy S24+ (Android)" as phone {
+  node "Expo Go" as expogo {
+    artifact "React Native app\n(mobile-app)" as rn
+  }
+}
+
+cloud "Google Cloud" as google {
+  node "Gemini API\ngenerativelanguage.googleapis.com" as gemini
+}
+
+ext --> rest : HTTP/JSON + Basic auth\nlocalhost:8080
+phpapp --> rest : HTTP/JSON + Basic auth
+pyapp --> rest : HTTP/JSON + Basic auth
+rn --> rest : HTTP/JSON + Basic auth\nWi-Fi LAN :8080
+metro ..> rn : JS bundle (development)
+sam .> rest : authenticates before
+rest --> gemini : HTTPS POST generateContent\n(x-goog-api-key)
+@enduml
