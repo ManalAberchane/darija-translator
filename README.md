@@ -28,7 +28,8 @@ Author: Manal Aberchane, Al Akhawayn University
 7. [Clients](#clients)
 8. [Architecture and design decisions](#architecture-and-design-decisions)
 9. [Testing](#testing)
-10. [Known limitations](#known-limitations)
+10. [Demo video](#demo-video)
+11. [Known limitations](#known-limitations)
 
 ## Repository layout
 
@@ -41,6 +42,8 @@ Author: Manal Aberchane, Al Akhawayn University
 | `mobile-app/` | React Native app (Expo SDK 58) for Android/iOS via Expo Go |
 | `docs/uml/` | Class, deployment, sequence and use-case diagrams (PlantUML sources + PNG/SVG) |
 | `docs/TESTING.md` | Test strategy and results |
+| `docs/DEMO_SCRIPT.md` | Script and checklist for the 5-minute demonstration video |
+| `docs/Darija_Translator.postman_collection.json` | Postman collection with 10 requests and automated checks |
 | `tests/` | End-to-end tests (Chrome extension, mobile web build) and a fake Gemini server |
 | `start-*.cmd` | Windows launchers for each component |
 
@@ -163,7 +166,12 @@ curl -u manal:<password> -H "Content-Type: application/json" \
 curl -i http://localhost:8080/api/translate?text=hi      # 401 + WWW-Authenticate: Basic
 ```
 
-In Postman: *Authorization* tab → *Basic Auth*; *Body* → *raw* → *JSON*.
+### Postman
+
+Import `docs/Darija_Translator.postman_collection.json` (Postman → *Import*). It contains 10 requests: successful
+translations (English, French, Latin script, GET), 401 without credentials and with a wrong password, 400 for empty
+text and malformed JSON, the prompt-injection case, and the health check. Each request has automated checks. Set the
+collection variables `username` and `password` (collection → *Variables*), then use *Run* to execute them all.
 
 ## Authentication
 
@@ -259,7 +267,13 @@ Summary (details in [docs/TESTING.md](docs/TESTING.md)):
 | Mobile API unit tests | `cd mobile-app && npm test` | 7 passed |
 | Chrome extension end-to-end (Playwright + Chromium) | `python tests/extension_e2e.py` | 11 checks passed |
 | Mobile UI end-to-end (web build in Chromium) | `python tests/mobile_web_e2e.py` | 8 checks passed |
+| Postman collection against the running backend (real Gemini) | Postman *Run*, or `npx newman run docs/Darija_Translator.postman_collection.json` | 21 assertions passed |
 | Manual: real Gemini via cURL, PHP and Python on Windows | see TESTING.md | passed |
+
+## Demo video
+
+The 5-minute demonstration video (`demo/Project2_demo.mp4`) is submitted together with the project archive.
+It isn't stored in this repository because it exceeds GitHub's file size limit.
 
 ## Known limitations
 

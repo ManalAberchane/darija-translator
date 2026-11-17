@@ -72,6 +72,12 @@ LLM failure mapping (502/503/504) is covered by the automated tests above, becau
 triggered on demand. During model selection, real 503 "high demand" and 404 "model no longer available"
 responses were observed from Gemini. They led to the fallback model and to the choice of default model.
 
+## 2b. Postman collection: 10 requests, 21 assertions, all passing
+
+`docs/Darija_Translator.postman_collection.json`, run against the backend on Windows with real Gemini, both with
+newman and with the Postman desktop runner: 200 for the four translation requests and the GET variant, 401 without
+credentials and with a wrong password, 400 for empty text and malformed JSON, 200 for the public health check.
+
 ## 3. Chrome extension: 11 end-to-end checks, all passing
 
 Run (backend on :8080 with user `tester`/`secret`, pointed at `tests/fake_gemini.py`):
